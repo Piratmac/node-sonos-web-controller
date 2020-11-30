@@ -6,7 +6,7 @@
 var Socket = Socket || {};
 
 var target = location.origin;
-Socket.socket = io.connect(target);
+Socket.socket = io.connect(target, {'path': location.pathname + 'socket.io/'});
 
 Socket.socket.on('topology-change', function (data) {
 	Sonos.grouping = {};
