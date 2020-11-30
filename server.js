@@ -41,8 +41,8 @@ var server = http.createServer(function (req, res) {
     var md5url = crypto.createHash('md5').update(req.url).digest('hex');
     var fileName = path.join(cacheDir, md5url);
 
-    fs.exists(fileName, function (exists) {
-      if (exists) {
+    fs.access(fileName, function (error) {
+      if (!error) {
         var readCache = fs.createReadStream(fileName);
         readCache.pipe(res);
         return;
@@ -55,12 +55,17 @@ var server = http.createServer(function (req, res) {
       http.get(`${player.baseUrl}${req.url}`, function (res2) {
         console.log(res2.statusCode);
         if (res2.statusCode == 200) {
-          if (!fs.exists(fileName)) {
-            var cacheStream = fs.createWriteStream(fileName);
-            res2.pipe(cacheStream);
-          } else {
-            res2.resume();
-          }
+          fs.access(fileName, function (error) {
+            if (error) {
+              var cacheStream = fs.createWriteStream(fileName);
+              res2.pipe(cacheStream);
+            }
+            else {
+              res2.resume();
+            }
+          });
+
+
         } else if (res2.statusCode == 404) {
           // no image exists! link it to the default image.
           console.log(res2.statusCode, 'linking', fileName)
