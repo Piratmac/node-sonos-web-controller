@@ -1,5 +1,7 @@
 "use strict";
 
+var missingAlbumArt = "images/browse_missing_album_art.png";
+
 Socket.topologyChanged = function (shouldRenderVolumes) {
   if (shouldRenderVolumes) renderVolumes();
 
@@ -70,7 +72,10 @@ function updateCurrentStatus() {
     document.getElementById("status-container").className = "radio";
 
   } else {
-    document.getElementById("current-track-art").src = selectedZone.state.currentTrack.absoluteAlbumArtUri;
+    if (selectedZone.state.currentTrack.absoluteAlbumArtUri != undefined)
+      document.getElementById("current-track-art").src = selectedZone.state.currentTrack.absoluteAlbumArtUri;
+    else
+      document.getElementById("current-track-art").src = missingAlbumArt;
     document.getElementById("track").textContent = selectedZone.state.currentTrack.title;
     document.getElementById("artist").textContent = selectedZone.state.currentTrack.artist;
     document.getElementById("album").textContent = selectedZone.state.currentTrack.album;
@@ -325,7 +330,7 @@ function renderFavorites(favorites) {
 
 function imageErrorHandler() {
   this.removeEventListener('error', imageErrorHandler);
-  this.src = "images/browse_missing_album_art.png";
+  this.src = missingAlbumArt;
 }
 
 function renderQueue(queue) {

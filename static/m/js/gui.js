@@ -1,4 +1,7 @@
 "use strict";
+
+var missingAlbumArt = "../images/browse_missing_album_art.png";
+
 var GUI = {
 	masterVolume: new TouchVolumeSlider(document.getElementById('master-volume'), function (volume) {
 		Socket.socket.emit('group-volume', {uuid: Sonos.currentState.selectedZone, volume: volume});
@@ -10,6 +13,10 @@ var GUI = {
 		// Try and fetch high-res coverart.
 		var currentTrackArt = document.getElementById("current-track-art");
 		currentTrackArt.src =  selectedZone.state.currentTrack.absoluteAlbumArtUri;
+		if (selectedZone.state.currentTrack.absoluteAlbumArtUri != undefined)
+		  currentTrackArt.src = selectedZone.state.currentTrack.absoluteAlbumArtUri;
+		else
+		  currentTrackArt.src = missingAlbumArt;
 
 		//document.getElementById('page-title').textContent = selectedZone.state.currentTrack.title + ' - Sonos Web Controller';
 		document.getElementById("track").textContent = selectedZone.state.currentTrack.title;
