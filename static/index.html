@@ -99,16 +99,26 @@
 			</ul>
 		</div>
 		<div id="music-sources-container">
-			<h4>FAVORITES</h4>
+			<div id="music-sources-backlink" class="hidden">🢀</div>
+			<h4>MUSIC SOURCES</h4>
 
-			<ul id="favorites-container"></ul>
-
+			<ul id="music-sources">
+				<li id="favorites">
+					<img src="images/sources_favorites.png" />
+					<span>Favorites</span>
+				</li>
+				<li id="tune-in" data-uri="http://opml.radiotime.com/">
+					<img src="images/sources_radio.png" />
+					<span>Radio</span>
+				</li>
+			</ul>
 		</div>
 	</div>
 
 	<script src="js/socket.js"></script>
 	<script src="js/sonos.js"></script>
 	<script src="js/gui-events.js"></script>
+	<script src="js/music-sources.js"></script>
 	<script src="js/volume-slider.js"></script>
 	<script src="js/progress-bar.js"></script>
 	<script src="js/gui.js"></script>

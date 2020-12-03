@@ -540,7 +540,7 @@ h4 {
 	font-size: 140%;
 }
 
-#favorites-container,
+#music-sources-container ul,
 #queue-container {
 	margin: 0;
 	padding: 0;
@@ -550,7 +550,20 @@ h4 {
 	border-top: 1px solid #012947;
 }
 
-#favorites-container li,
+#music-sources-container ul{
+  border:0;
+}
+
+#music-sources-backlink {
+  float:left;
+  font-weight: 600;
+  font-size: 120%;
+  padding:9px;
+  margin: 0;
+  color: #0A97FF;
+}
+
+#music-sources-container li,
 #queue-container li {
 	list-style: none;
 	margin: 0;
@@ -561,13 +574,20 @@ h4 {
 	transition: all 0.15s;
 }
 
-#favorites-container li:hover,
+#music-sources-container li.nobackground,
+#music-sources-container li.nobackground:hover,
+#music-sources-container li.nobackground:focus{
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+#music-sources-container li:hover,
 #queue-container li:hover {
 	background: rgba(255,255,255,0.05);
 	outline: none;
 }
 
-#favorites-container li:focus,
+#music-sources-container li:focus,
 #queue-container li:focus {
 	background: rgba(255,255,255,0.15);
 	outline: none;
@@ -575,7 +595,7 @@ h4 {
 
 
 
-#favorites-container li img,
+#music-sources-container li img,
 #queue-container li img {
 	width: 40px;
 	height: 40px;
@@ -602,11 +622,14 @@ h4 {
 	color: #aaa;
 }
 
-#favorites-container li span {
+#music-sources-container li span {
 	padding: 3px;
 	line-height: 40px;
 }
 
 #queue-container {
 	height: calc(100% - 316px);
+}
+.hidden {
+  display:none !important;
 }

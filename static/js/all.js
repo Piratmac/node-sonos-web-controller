@@ -41,10 +41,6 @@ Socket.muteChanged = function (data) {
   document.getElementById("mute-" + data.uuid).src = data.newMute ? 'svg/mute_on.svg' : 'svg/mute_off.svg';
 }
 
-Socket.favoritesChanged = function (data) {
-  renderFavorites(data);
-}
-
 Socket.queueChanged = function (data) {
   if (data.uuid != Sonos.currentState.selectedZone) return;
   renderQueue(data.queue);
@@ -60,18 +56,18 @@ Socket.searchResultReceived = function (data) {
 
 function updateCurrentStatus() {
   var selectedZone = Sonos.currentZoneCoordinator();
-  
-  document.getElementById('page-title').textContent = selectedZone.state.currentTrack.title + ' - Sonos Web Controller';
 
   var prefix = (window.location.pathname != '/') ? window.location.pathname : ''
   if (selectedZone.state.currentTrack.type == 'radio') {
     // update radio
+    document.getElementById('page-title').textContent = selectedZone.state.currentTrack.stationName + ' - Sonos Web Controller';
     document.getElementById("current-radio-art").src = selectedZone.state.currentTrack.absoluteAlbumArtUri;
-    document.getElementById("station").textContent = selectedZone.state.currentTrack.title;
+    document.getElementById("station").textContent = selectedZone.state.currentTrack.stationName;
     document.getElementById("information").textContent = selectedZone.state.currentTrack.streamInfo;
     document.getElementById("status-container").className = "radio";
 
   } else {
+    document.getElementById('page-title').textContent = selectedZone.state.currentTrack.title + ' - Sonos Web Controller';
     if (selectedZone.state.currentTrack.absoluteAlbumArtUri != undefined)
       document.getElementById("current-track-art").src = selectedZone.state.currentTrack.absoluteAlbumArtUri;
     else
@@ -305,28 +301,6 @@ function reRenderZones() {
   oldWrapper.parentNode.replaceChild(newWrapper, oldWrapper);
 }
 
-function renderFavorites(favorites) {
-  var oldContainer = document.getElementById('favorites-container');
-  var newContainer = oldContainer.cloneNode(false);
-
-  var i = 0;
-
-  favorites.forEach(function (favorite) {
-    var li = document.createElement('li');
-    li.dataset.title = favorite.title;
-    var span = document.createElement('span');
-    span.textContent = favorite.title;
-    var albumArt = document.createElement('img');
-    albumArt.addEventListener('error', imageErrorHandler);
-    albumArt.src = favorite.albumArtUri;
-    li.appendChild(albumArt);
-    li.appendChild(span);
-    li.tabIndex = i++;
-    newContainer.appendChild(li);
-  });
-
-  oldContainer.parentNode.replaceChild(newContainer, oldContainer);
-}
 
 function imageErrorHandler() {
   this.removeEventListener('error', imageErrorHandler);

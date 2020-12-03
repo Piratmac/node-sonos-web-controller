@@ -4,6 +4,7 @@ const StaticServer = require('node-static').Server;
 const io = require('socket.io');
 const fs = require('fs');
 const path = require('path');
+const xml2js = require('xml2js');
 const crypto = require('crypto');
 const async = require('async');
 const SonosDiscovery = require('sonos-discovery');
@@ -36,6 +37,8 @@ fs.mkdir(cacheDir, function (e) {
 });
 
 var server = http.createServer(function (req, res) {
+  settings.acceptLanguage = req.headers['accept-language'];
+
   if (/^\/getaa/.test(req.url)) {
     // this is a resource, download from player and put in cache folder
     var md5url = crypto.createHash('md5').update(req.url).digest('hex');
@@ -103,10 +106,6 @@ socketServer.sockets.on('connection', function (socket) {
   if (players.length == 0) return;
 
   socket.emit('topology-change', players);
-  discovery.getFavorites()
-    .then((favorites) => {
-      socket.emit('favorites', favorites);
-    });
 
   socket.on('transport-state', function (data) {
     // find player based on uuid
@@ -142,12 +141,20 @@ socketServer.sockets.on('connection', function (socket) {
     player.setAVTransport(`x-rincon:${data.group}`);
   });
 
+  socket.on('favorites', function (data) {
+      discovery.getFavorites()
+        .then((favorites) => {
+          socket.emit('favorites', favorites);
+        });
+  });
+
   socket.on('play-favorite', function (data) {
     var player = discovery.getPlayerByUUID(data.uuid);
     if (!player) return;
 
     player.replaceWithFavorite(data.favorite)
-      .then(() => player.play());
+      .then(() => player.play())
+      .catch((error) => console.log(error));
   });
 
   socket.on('queue', function (data) {
@@ -211,6 +218,44 @@ socketServer.sockets.on('connection', function (socket) {
   socket.on("error", function (e) {
     console.error(e);
   })
+
+  socket.on('tune-in-radio', function (data) {
+    if (data.uri == undefined)
+      throw new Error('Received radio request without URI');
+
+    var requestdata = new URL(data.uri);
+    var headers = {'Accept-Language': settings.acceptLanguage}; // Allows to fetch data in the user's language directly
+
+    var request = http.request(requestdata, {'headers': headers}, function(response) {
+      var sourcesXML = '';
+      console.log("Radio: Got response " + response.statusCode);
+      response.on("data", function (chunk) {
+        sourcesXML += chunk;
+      });
+      response.on('end', function () {
+        xml2js.parseString (sourcesXML, function (error, result) {
+          if (error != undefined) {
+            console.log("Got error: " + error.message);
+            return;
+          }
+          socket.emit ('tune-in-radio', {uri: data.uri, source_id:data.source_id, title: result.opml.head[0].title[0], data: result.opml.body[0].outline})
+        });
+      });
+    });
+    request.on('error', function(error) {
+      console.log("Got error: " + error.message);
+    });
+    request.end();
+  });
+
+  socket.on('play-tune-in-radio', function (data) {
+    var player = discovery.getPlayerByUUID(data.uuid);
+    if (!player) return;
+
+    player.replaceWithTuneInRadio(data)
+      .then(() => player.play())
+      .catch((error) => console.log(error));
+  });
 });
 
 discovery.on('topology-change', function (data) {

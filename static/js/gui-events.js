@@ -86,17 +86,6 @@ document.getElementById('prev').addEventListener('click', function () {
 	Socket.socket.emit('transport-state', { uuid: Sonos.currentState.selectedZone, state: action });
 });
 
-document.getElementById('music-sources-container').addEventListener('dblclick', function (e) {
-	function findFavoriteNode(currentNode) {
-		// If we are at top level, abort.
-		if (currentNode == this) return;
-		if (currentNode.tagName == "LI") return currentNode;
-		return findFavoriteNode(currentNode.parentNode);
-	}
-	var li = findFavoriteNode(e.target);
-	Socket.socket.emit('play-favorite', {uuid: Sonos.currentState.selectedZone, favorite: li.dataset.title});
-});
-
 document.getElementById('status-container').addEventListener('dblclick', function (e) {
 	function findQueueNode(currentNode) {
 		// If we are at top level, abort.

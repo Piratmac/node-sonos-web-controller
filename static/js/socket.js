@@ -6,7 +6,9 @@
 var Socket = Socket || {};
 
 var target = location.origin;
-Socket.socket = io.connect(target, {'path': location.pathname + 'socket.io/'});
+var path = location.pathname;
+if (path.substr(-3) == '/m/') path = path.substr(0, path.length-2);
+Socket.socket = io.connect(target, {'path': path + 'socket.io/'});
 
 Socket.socket.on('topology-change', function (data) {
 	Sonos.grouping = {};
@@ -60,7 +62,7 @@ Socket.socket.on('mute', function (data) {
 });
 
 Socket.socket.on('favorites', function (data) {
-	if (Socket.favoritesChanged instanceof Function) Socket.favoritesChanged(data);
+	if (Socket.renderFavorites instanceof Function) Socket.renderFavorites(data);
 });
 
 Socket.socket.on('queue', function (data) {
@@ -70,4 +72,8 @@ Socket.socket.on('queue', function (data) {
 
 Socket.socket.on('search-result', function (data) {
 	if (Socket.searchResultReceived instanceof Function) Socket.searchResultReceived(data);
+})
+
+Socket.socket.on('tune-in-radio', function (data) {
+	if (Socket.renderTuneInRadios instanceof Function) Socket.renderTuneInRadios(data);
 })
