@@ -1,6 +1,13 @@
 Sonos Web Controller
 ====================
 
+This is a modified version of jishi's great Sonos controller (https://github.com/jishi/node-sonos-web-controller)
+I have added the coverage of Radio stations, and I plan to add music library browsing in the future.
+
+
+Sonos Web Controller
+====================
+
 NOTE! THIS IS A WORK IN PROGRESS! This is a really early alpha. Things might break from time to time, until I settle a final release that I consider stable for daily use. Until then only master branch will exist.
 
 NOTE! **Requires node.js 4.0.0+**
