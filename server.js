@@ -282,6 +282,21 @@ socketServer.sockets.on('connection', function(socket) {
             .then(() => player.play())
             .catch((error) => console.log(error));
     });
+
+    socket.on('library-playlists', function(data) {
+        discovery.getMusicLibraryPlaylists()
+            .then(data => socket.emit('library-playlists', data))
+            .catch((error) => console.log(error));
+    });
+
+    socket.on('play-library-playlist', function(data) {
+        var player = discovery.getPlayerByUUID(data.uuid);
+        if (!player) return;
+
+        player.replaceWithMusicLibraryPlaylist(data.title)
+            .then(() => player.play())
+            .catch((error) => console.log(error));
+    });
 });
 
 discovery.on('topology-change', function(data) {

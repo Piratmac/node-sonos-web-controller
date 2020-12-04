@@ -13,8 +13,8 @@ Socket.renderTuneInRadios = function(data) {
     renderTuneInRadios(data);
 };
 
-Socket.renderPlaylists = function(data) {
-    renderPlaylists(data);
+Socket.renderPlaylists = function(data, parent) {
+    renderPlaylists(data, parent);
 };
 
 ///
@@ -65,10 +65,10 @@ function renderTuneInRadios(sources) {
 }
 
 // Renders the playlists
-function renderPlaylists(playlists) {
+function renderPlaylists(playlists, parent) {
     // Formatting the data in the expected way
     var playlists_folder = {
-        'id': 'playlists',
+        'id': parent,
         'children': [],
     };
 
@@ -81,10 +81,12 @@ function renderPlaylists(playlists) {
                 'uri': playlist.uri,
             }
         }
-        if (typeof playlist.albumArtUri == 'string')
-            playlist_data.image = playlist.albumArtUri;
-        else if (playlist.albumArtUri.length > 0)
-            playlist_data.image = playlist.albumArtUri[0];
+        if (playlist.albumArtUri != undefined) {
+            if (typeof playlist.albumArtUri == 'string')
+                playlist_data.image = playlist.albumArtUri;
+            else if (playlist.albumArtUri.length > 0)
+                playlist_data.image = playlist.albumArtUri[0];
+        }
         playlists_folder.children.push(playlist_data);
     });
     // Sort by title
@@ -254,29 +256,24 @@ document.getElementById('music-sources-backlink').addEventListener('dblclick', f
     closeMusicSource(e.target.dataset.pwd);
 });
 
-document.getElementById('favorites').addEventListener('dblclick', function(e) {
-    var currentFolder = findMusicSourceNode(e);
-
-    // If we don't have any subelement, trigger the socket for search
-    var children = currentFolder.getElementsByTagName("ul");
-    if (children.length == 0)
-        Socket.socket.emit('favorites');
-
-    openMusicSource(currentFolder);
-});
+// Opens one of the music sources folder
+document.getElementById('favorites').addEventListener('dblclick', e => browseMusicSource (e, 'favorites'));
+document.getElementById('playlists').addEventListener('dblclick', e => browseMusicSource (e, 'playlists'));
+document.getElementById('library-playlists').addEventListener('dblclick', e => browseMusicSource (e, 'library-playlists'));
 
 document.getElementById('tune-in').addEventListener('dblclick', displayTuneInRadios);
 
-document.getElementById('playlists').addEventListener('dblclick', function(e) {
+// Opens a music source folder & emits socket event if there are no children
+function browseMusicSource (e, socketMessage) {
     var currentFolder = findMusicSourceNode(e);
 
     // If we don't have any subelement, trigger the socket for search
     var children = currentFolder.getElementsByTagName("ul");
     if (children.length == 0)
-        Socket.socket.emit('playlists');
+        Socket.socket.emit(socketMessage);
 
     openMusicSource(currentFolder);
-});
+}
 
 // Displays a radio, and sends a socket message if we don't have the details yet
 function displayTuneInRadios(e) {
@@ -410,12 +407,18 @@ function playTuneInRadio(e) {
         image: eventRadio.dataset.image,
     });
 }
+
 // Double-click on a playlist
 function playPlaylist(e) {
     var eventPlaylist = findMusicSourceNode(e);
     var playlistTitle = eventPlaylist.getElementsByTagName("span")[0].textContent;
 
-    Socket.socket.emit('play-playlist', {
+    if (eventPlaylist.parentNode.parentNode.id == 'playlists')
+        var socketMessage = 'play-playlist'
+    else
+        var socketMessage = 'play-library-playlist'
+
+    Socket.socket.emit(socketMessage, {
         uuid: Sonos.currentState.selectedZone,
         id: eventPlaylist.dataset.id,
         title: playlistTitle,

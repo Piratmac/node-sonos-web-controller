@@ -83,5 +83,9 @@ Socket.socket.on('tune-in-radio', function(data) {
 })
 
 Socket.socket.on('playlists', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderPlaylists(data);
+    if (Socket.renderPlaylists instanceof Function) Socket.renderPlaylists(data, 'playlists');
+})
+
+Socket.socket.on('library-playlists', function(data) {
+    if (Socket.renderPlaylists instanceof Function) Socket.renderPlaylists(data, 'library-playlists');
 })

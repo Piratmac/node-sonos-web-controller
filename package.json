@@ -11,7 +11,7 @@
     "async": "^0.9.0",
     "node-static": "^0.7.9",
     "socket.io": "^2.2.0",
-    "sonos-discovery": "https://github.com/Piratmac/node-sonos-discovery/archive/1.8.0.tar.gz",
+    "sonos-discovery": "https://github.com/Piratmac/node-sonos-discovery/archive/v1.8.1.tar.gz",
     "xml2js": "^0.4.22"
   },
   "engine": "node 4.x.x"
