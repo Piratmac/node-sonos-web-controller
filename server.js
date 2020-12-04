@@ -267,6 +267,21 @@ socketServer.sockets.on('connection', function(socket) {
             .then(() => player.play())
             .catch((error) => console.log(error));
     });
+
+    socket.on('playlists', function(data) {
+        discovery.getPlaylists()
+            .then(data => socket.emit('playlists', data))
+            .catch((error) => console.log(error));
+    });
+
+    socket.on('play-playlist', function(data) {
+        var player = discovery.getPlayerByUUID(data.uuid);
+        if (!player) return;
+
+        player.replaceWithPlaylist(data.title)
+            .then(() => player.play())
+            .catch((error) => console.log(error));
+    });
 });
 
 discovery.on('topology-change', function(data) {

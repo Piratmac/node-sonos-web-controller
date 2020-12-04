@@ -13,6 +13,10 @@ Socket.renderTuneInRadios = function(data) {
     renderTuneInRadios(data);
 };
 
+Socket.renderPlaylists = function(data) {
+    renderPlaylists(data);
+};
+
 ///
 /// Rendering
 ///
@@ -58,6 +62,35 @@ function renderTuneInRadios(sources) {
     });
 
     renderMusicSources(radios_folder);
+}
+
+// Renders the playlists
+function renderPlaylists(playlists) {
+    // Formatting the data in the expected way
+    var playlists_folder = {
+        'id': 'playlists',
+        'children': [],
+    };
+
+    playlists.forEach(function(playlist, index) {
+        var playlist_data = {
+            'id': 'playlist-' + index.toString(),
+            'title': playlist.title,
+            'handler': playPlaylist,
+            'data': {
+                'uri': playlist.uri,
+            }
+        }
+        if (typeof playlist.albumArtUri == 'string')
+            playlist_data.image = playlist.albumArtUri;
+        else if (playlist.albumArtUri.length > 0)
+            playlist_data.image = playlist.albumArtUri[0];
+        playlists_folder.children.push(playlist_data);
+    });
+    // Sort by title
+    playlists_folder.children.sort((a, b) => ('' + a.title).localeCompare(b.title));
+
+    renderMusicSources(playlists_folder);
 }
 
 // Formats a given level of TuneIn radio data
@@ -222,7 +255,7 @@ document.getElementById('music-sources-backlink').addEventListener('dblclick', f
 });
 
 document.getElementById('favorites').addEventListener('dblclick', function(e) {
-    var currentFolder = findMusicSourceNode(e)
+    var currentFolder = findMusicSourceNode(e);
 
     // If we don't have any subelement, trigger the socket for search
     var children = currentFolder.getElementsByTagName("ul");
@@ -233,6 +266,17 @@ document.getElementById('favorites').addEventListener('dblclick', function(e) {
 });
 
 document.getElementById('tune-in').addEventListener('dblclick', displayTuneInRadios);
+
+document.getElementById('playlists').addEventListener('dblclick', function(e) {
+    var currentFolder = findMusicSourceNode(e);
+
+    // If we don't have any subelement, trigger the socket for search
+    var children = currentFolder.getElementsByTagName("ul");
+    if (children.length == 0)
+        Socket.socket.emit('playlists');
+
+    openMusicSource(currentFolder);
+});
 
 // Displays a radio, and sends a socket message if we don't have the details yet
 function displayTuneInRadios(e) {
@@ -364,5 +408,16 @@ function playTuneInRadio(e) {
         id: eventRadio.dataset.id,
         title: radioName,
         image: eventRadio.dataset.image,
+    });
+}
+// Double-click on a playlist
+function playPlaylist(e) {
+    var eventPlaylist = findMusicSourceNode(e);
+    var playlistTitle = eventPlaylist.getElementsByTagName("span")[0].textContent;
+
+    Socket.socket.emit('play-playlist', {
+        uuid: Sonos.currentState.selectedZone,
+        id: eventPlaylist.dataset.id,
+        title: playlistTitle,
     });
 }
