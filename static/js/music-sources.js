@@ -62,7 +62,7 @@ function renderTuneInRadios(sources) {
 
 // Formats a given level of TuneIn radio data
 // There is a bit of recursivity to it, so it's easier in a separate function
-function formatTuneInRadio (source, parent_id) {
+function formatTuneInRadio(source, parent_id) {
     if (source['outline'] != undefined) {
         var group_id = parent_id + '-' + source['$'].key;
         var source_data = {
@@ -77,8 +77,7 @@ function formatTuneInRadio (source, parent_id) {
             var temp = formatTuneInRadio(child, group_id);
             source_data.children.push(temp);
         });
-    }
-    else {
+    } else {
         source = source['$'];
         switch (source.type) {
             // This is a category with a link to get more data
@@ -100,7 +99,7 @@ function formatTuneInRadio (source, parent_id) {
                 }
                 break;
 
-            // This is a radio station
+                // This is a radio station
             case 'audio':
                 var source_data = {
                     'id': parent_id + '-' + source.preset_id,
@@ -124,7 +123,7 @@ function formatTuneInRadio (source, parent_id) {
 // sources should have the following elements:
 // - id: unique ID of the source
 // - children: one subelement for each child. see renderMusicSource for the format
-function renderMusicSources (sources) {
+function renderMusicSources(sources) {
     var currentFolder = document.getElementById(sources.id)
     var ul = currentFolder.getElementsByTagName("ul")[0];
 
@@ -143,7 +142,7 @@ function renderMusicSources (sources) {
 }
 
 // Sorts first radios, then links - then uses alphabetic sort
-function sortTuneInRadio (a, b) {
+function sortTuneInRadio(a, b) {
     if (a['$'].type == b['$'].type)
         return ('' + a['$'].text).localeCompare(b['$'].text);
     else
@@ -176,8 +175,7 @@ function renderMusicSource(source) {
         if (source.image[0] == '/') {
             var prefix = (window.location.pathname != '/') ? window.location.pathname : '';
             albumArt.src = prefix + source.image;
-        }
-        else
+        } else
             albumArt.src = source.image;
     }
 
@@ -213,9 +211,9 @@ function findMusicSourceNode(element) {
 
 // Sets all dataset attributes of an element based on a dict
 function setDatasetAttributes(el, attrs) {
-  for(var key in attrs) {
-    el.setAttribute('data-' + key, attrs[key]);
-  }
+    for (var key in attrs) {
+        el.setAttribute('data-' + key, attrs[key]);
+    }
 }
 
 // This will display a given folder and its siblings
@@ -223,7 +221,7 @@ document.getElementById('music-sources-backlink').addEventListener('dblclick', f
     closeMusicSource(e.target.dataset.pwd);
 });
 
-document.getElementById('favorites').addEventListener('dblclick', function (e) {
+document.getElementById('favorites').addEventListener('dblclick', function(e) {
     var currentFolder = findMusicSourceNode(e)
 
     // If we don't have any subelement, trigger the socket for search
@@ -237,7 +235,7 @@ document.getElementById('favorites').addEventListener('dblclick', function (e) {
 document.getElementById('tune-in').addEventListener('dblclick', displayTuneInRadios);
 
 // Displays a radio, and sends a socket message if we don't have the details yet
-function displayTuneInRadios (e) {
+function displayTuneInRadios(e) {
     var currentFolder = findMusicSourceNode(e)
 
     // If we don't have any subelement, trigger the socket for search
@@ -254,7 +252,7 @@ function displayTuneInRadios (e) {
 
 // Opens a given folder
 // This will only modify some classes to display/hide stuff and update the header
-function openMusicSource (folder) {
+function openMusicSource(folder) {
     var currentFolder = findMusicSourceNode(folder)
 
     // Update the header
@@ -301,7 +299,7 @@ function openMusicSource (folder) {
 
 // Closes a given folder
 // This will only modify some classes to display/hide stuff and update the header
-function closeMusicSource (folder) {
+function closeMusicSource(folder) {
     var currentFolder = findMusicSourceNode(folder)
 
     // Update the header with the parent's data
@@ -346,7 +344,7 @@ function closeMusicSource (folder) {
 }
 
 // Double-click on a favorite
-function playFavorite (e) {
+function playFavorite(e) {
     var eventFavorite = findMusicSourceNode(e);
     var favoriteName = eventFavorite.getElementsByTagName("span")[0].textContent;
 
@@ -357,7 +355,7 @@ function playFavorite (e) {
 }
 
 // Double-click on a radio
-function playTuneInRadio (e) {
+function playTuneInRadio(e) {
     var eventRadio = findMusicSourceNode(e);
     var radioName = eventRadio.getElementsByTagName("span")[0].textContent;
 
