@@ -83,9 +83,29 @@ Socket.socket.on('tune-in-radio', function(data) {
 })
 
 Socket.socket.on('playlists', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderPlaylists(data, 'playlists');
+    if (Socket.renderPlaylists instanceof Function) Socket.renderPlaylists(data);
+})
+
+Socket.socket.on('library-album', function(data) {
+    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-album');
+})
+
+Socket.socket.on('library-artist', function(data) {
+    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-artist');
+})
+
+Socket.socket.on('library-composer', function(data) {
+    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-composer');
+})
+
+Socket.socket.on('library-genre', function(data) {
+    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-genre');
+})
+
+Socket.socket.on('library-tracks', function(data) {
+    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-tracks');
 })
 
 Socket.socket.on('library-playlists', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderPlaylists(data, 'library-playlists');
+    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-playlists');
 })

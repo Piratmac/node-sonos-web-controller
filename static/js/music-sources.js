@@ -14,7 +14,11 @@ Socket.renderTuneInRadios = function(data) {
 };
 
 Socket.renderPlaylists = function(data, parent) {
-    renderPlaylists(data, parent);
+    renderPlaylists(data);
+};
+
+Socket.renderLibraryItems = function(data, parent) {
+    renderLibraryItems(data, parent);
 };
 
 ///
@@ -65,10 +69,10 @@ function renderTuneInRadios(sources) {
 }
 
 // Renders the playlists
-function renderPlaylists(playlists, parent) {
+function renderPlaylists(playlists) {
     // Formatting the data in the expected way
     var playlists_folder = {
-        'id': parent,
+        'id': 'playlists',
         'children': [],
     };
 
@@ -93,6 +97,73 @@ function renderPlaylists(playlists, parent) {
     playlists_folder.children.sort((a, b) => ('' + a.title).localeCompare(b.title));
 
     renderMusicSources(playlists_folder);
+}
+
+// Renders library items
+function renderLibraryItems(data, parent) {
+    // Formatting the data in the expected way
+    var superior_folder = {
+        'id': parent,
+        'children': [],
+    };
+
+    var items = data[0].items;
+    var letters = [...new Set(items.map((item) => item.title[0].toUpperCase()))];
+    var letter = '';
+    letters.sort()
+
+    if (data[0].numberReturned <= 20) {
+        items.forEach(function(item, index) {
+            var item_data = {
+                'id': 'library-' + data[0].type.toLowerCase() + '-' + index.toString(),
+                'title': item.title,
+                'handler': playLibraryItem,
+                'data': {
+                    'uri': item.uri,
+                }
+            }
+            if (item.albumArtUri != undefined)
+                item_data.image = item.albumArtUri;
+            if (item.artist != undefined)
+                item_data.artist = item.artist;
+
+            superior_folder.children.push(item_data);
+        });
+    }
+    else {
+        var folders = []
+        letters.forEach((letter) => folders.push({
+                    'id': 'library-' + data[0].type.toLowerCase() + '-' + letter,
+                    'title': letter.toUpperCase(),
+                    'children': [],
+                    'data':{}
+                }));
+        items.forEach(function(item, index) {
+            letter = item.title[0].toUpperCase()
+            var item_data = {
+                'id': 'library-' + data[0].type.toLowerCase() + '-' + letter + '-' + index.toString(),
+                'title': item.title,
+                'handler': playLibraryItem,
+                'data': {
+                    'uri': item.uri,
+                }
+            }
+            if (item.albumArtUri != undefined)
+                item_data.image = item.albumArtUri;
+            if (item.artist != undefined)
+                item_data.artist = item.artist;
+
+            folders[letters.indexOf(letter)].children.push(item_data);
+        });
+
+        folders.forEach((folder) => folder.children.sort((a, b) => ('' + a.title).localeCompare(b.title)));
+
+        superior_folder.children = folders;
+    }
+
+    // Sort by title
+    superior_folder.children.sort((a, b) => ('' + a.title).localeCompare(b.title));
+    renderMusicSources(superior_folder);
 }
 
 // Formats a given level of TuneIn radio data
@@ -259,20 +330,27 @@ document.getElementById('music-sources-backlink').addEventListener('dblclick', f
 // Opens one of the music sources folder
 document.getElementById('favorites').addEventListener('dblclick', e => browseMusicSource (e, 'favorites'));
 document.getElementById('playlists').addEventListener('dblclick', e => browseMusicSource (e, 'playlists'));
-document.getElementById('library-playlists').addEventListener('dblclick', e => browseMusicSource (e, 'library-playlists'));
+document.getElementById('library').addEventListener('dblclick', e => browseMusicSource (e, 'library'));
+document.getElementById('library-album').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'album'));
+document.getElementById('library-artist').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'artist'));
+document.getElementById('library-composer').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'composer'));
+document.getElementById('library-genre').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'genre'));
+document.getElementById('library-playlists').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'playlists'));
+document.getElementById('library-tracks').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'tracks'));
 
 document.getElementById('tune-in').addEventListener('dblclick', displayTuneInRadios);
 
 // Opens a music source folder & emits socket event if there are no children
-function browseMusicSource (e, socketMessage) {
+function browseMusicSource (e, socketMessage, data = '') {
     var currentFolder = findMusicSourceNode(e);
 
     // If we don't have any subelement, trigger the socket for search
     var children = currentFolder.getElementsByTagName("ul");
     if (children.length == 0)
-        Socket.socket.emit(socketMessage);
+        Socket.socket.emit(socketMessage, data);
 
     openMusicSource(currentFolder);
+    e.stopPropagation();
 }
 
 // Displays a radio, and sends a socket message if we don't have the details yet
@@ -413,14 +491,22 @@ function playPlaylist(e) {
     var eventPlaylist = findMusicSourceNode(e);
     var playlistTitle = eventPlaylist.getElementsByTagName("span")[0].textContent;
 
-    if (eventPlaylist.parentNode.parentNode.id == 'playlists')
-        var socketMessage = 'play-playlist'
-    else
-        var socketMessage = 'play-library-playlist'
-
-    Socket.socket.emit(socketMessage, {
+    Socket.socket.emit('play-playlist', {
         uuid: Sonos.currentState.selectedZone,
         id: eventPlaylist.dataset.id,
+        title: playlistTitle,
+    });
+}
+
+// Double-click on a library item
+function playLibraryItem(e) {
+    var eventPlaylist = findMusicSourceNode(e);
+    var playlistTitle = eventPlaylist.getElementsByTagName("span")[0].textContent;
+
+    Socket.socket.emit('play-library-item', {
+        uuid: Sonos.currentState.selectedZone,
+        id: eventPlaylist.dataset.id,
+        uri: eventPlaylist.dataset.uri,
         title: playlistTitle,
     });
 }

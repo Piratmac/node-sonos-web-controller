@@ -54,7 +54,7 @@ var server = http.createServer(function(req, res) {
             const player = discovery.getAnyPlayer();
             if (!player) return;
 
-            console.log('fetching album art from', player.localEndpoint);
+            console.log('fetching album art from', player.uuid);
             http.get(`${player.baseUrl}${req.url}`, function(res2) {
                 console.log(res2.statusCode);
                 if (res2.statusCode == 200) {
@@ -214,7 +214,7 @@ socketServer.sockets.on('connection', function(socket) {
     });
 
     socket.on('search', function(data) {
-        search(data.term, socket);
+        search('*', data.term, socket);
     });
 
     socket.on("error", function(e) {
@@ -283,17 +283,15 @@ socketServer.sockets.on('connection', function(socket) {
             .catch((error) => console.log(error));
     });
 
-    socket.on('library-playlists', function(data) {
-        discovery.getMusicLibraryPlaylists()
-            .then(data => socket.emit('library-playlists', data))
-            .catch((error) => console.log(error));
+    socket.on('library', function (data) {
+        search(data, '', 'library-' + data, socket);
     });
 
-    socket.on('play-library-playlist', function(data) {
+    socket.on('play-library-item', function(data) {
         var player = discovery.getPlayerByUUID(data.uuid);
         if (!player) return;
 
-        player.replaceWithMusicLibraryPlaylist(data.title)
+        player.replaceWithURI(data.uri, '')
             .then(() => player.play())
             .catch((error) => console.log(error));
     });
@@ -352,8 +350,10 @@ function loadQueue(uuid) {
         });
 }
 
-function search(term, socket) {
-    console.log('search for', term)
+var all_search_types = ['album', 'albumartist', 'artist', 'composer', 'genre', 'playlists', 'share', 'tracks']
+
+function search(types, term, response, socket) {
+    console.log('search for', term, 'in', types)
     var playerCycle = 0;
     var players = [];
 
@@ -366,37 +366,37 @@ function search(term, socket) {
         return player;
     }
 
-    var response = {};
+    var search_types = []
 
-    async.parallelLimit([
-        function(callback) {
-            var player = getPlayer();
-            console.log('fetching from', player.address)
-            player.browse('A:ARTIST:' + term, 0, 600, function(success, result) {
-                console.log(success, result)
-                response.byArtist = result;
-                callback(null, 'artist');
-            });
-        },
-        function(callback) {
-            var player = getPlayer();
-            console.log('fetching from', player.address)
-            player.browse('A:TRACKS:' + term, 0, 600, function(success, result) {
-                response.byTrack = result;
-                callback(null, 'track');
-            });
-        },
-        function(callback) {
-            var player = getPlayer();
-            console.log('fetching from', player.address)
-            player.browse('A:ALBUM:' + term, 0, 600, function(success, result) {
-                response.byAlbum = result;
-                callback(null, 'album');
-            });
-        }
-    ], players.length, function(err, result) {
+    if (typeof types == 'string')
+        if (types == '*')
+            search_types = all_search_types
+        else
+            search_types = [types]
+    else
+        for (var type in types)
+            if (all_search_types.indexOf(type.toUpperCase()) >= 0)
+                search_types.append(type)
 
-        socket.emit('search-result', response);
+    var searchFunction = function(callback) {
+        var player = getPlayer();
+        console.log('fetching', this.type, 'from', player.uuid)
+        player.browse('A:' + this.type + ':' + this.term, 0, 600)
+            .then((data) => {
+                data.type = this.type;
+                data.term = this.term;
+                callback(null, data)
+            })
+            .catch((error) => console.log(error));
+    }
+
+    var searchFunctions = [];
+    for (type in search_types)
+        searchFunctions.push(searchFunction.bind({'type': search_types[type].toUpperCase(), 'term': term}));
+
+    var results = {}
+    async.parallelLimit(searchFunctions, players.length, function(err, results) {
+        socket.emit(response, results);
     });
 }
 
