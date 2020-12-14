@@ -323,8 +323,25 @@ function renderMusicSource(source) {
     else
         li.addEventListener('dblclick', openMusicSource);
 
-    var title = document.createElement('span');
-    title.textContent = source.title;
+
+    if (source.artist == undefined) {
+        var itemInfo = document.createElement('span');
+        itemInfo.textContent = source.title;
+    }
+    else {
+        var itemInfo = document.createElement('div');
+        var title = document.createElement('p');
+        title.className = 'title';
+        title.textContent = source.title;
+        itemInfo.appendChild(title);
+
+        var artist = document.createElement('p');
+        artist.className = 'artist';
+        artist.textContent = source.artist;
+        itemInfo.appendChild(artist);
+    }
+
+
 
     var albumArt = document.createElement('img');
     if (source.image == undefined) {
@@ -338,7 +355,7 @@ function renderMusicSource(source) {
     }
 
     li.appendChild(albumArt);
-    li.appendChild(title);
+    li.appendChild(itemInfo);
 
     if (source.children != undefined) {
         var ul = document.createElement("ul");
@@ -436,8 +453,8 @@ function displayTuneInRadios(e) {
 
 // Opens a given folder
 // This will only modify some classes to display/hide stuff and update the header
-function openMusicSource(folder) {
-    var currentFolder = findMusicSourceNode(folder)
+function openMusicSource(e) {
+    var currentFolder = findMusicSourceNode(e)
 
     // Update the header
     var folderName = currentFolder.getElementsByTagName("span")[0].textContent;
@@ -479,6 +496,9 @@ function openMusicSource(folder) {
     });
     // This prevents having a double hover effect (since the parent is still visible)
     currentFolder.classList.add('nobackground');
+
+    if (e.stopPropagation)
+        e.stopPropagation();
 }
 
 // Closes a given folder

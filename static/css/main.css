@@ -614,15 +614,19 @@ h4 {
 	width: 40px;
 	height: 40px;
 	vertical-align: top;
-	margin-right: 3px;
+	margin-right: 10px;
 	display: inline-block;
 }
 
+#music-sources-container li div,
 #queue-container li div {
 	display: inline-block;
-	width: calc(100% - 43px);
+	width: calc(100% - 60px);
+	height:36px;
+	padding:4px 3px 0 3px;
 }
 
+#music-sources-container li div p,
 #queue-container li div p {
 	margin: 0;
 	line-height: 18px;
@@ -632,8 +636,10 @@ h4 {
 	white-space: nowrap;
 }
 
+#music-sources-container li div p.artist,
 #queue-container li div p.artist {
 	color: #aaa;
+	font-style:italic;
 }
 
 #music-sources-container li span {

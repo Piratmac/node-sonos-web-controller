@@ -46,10 +46,6 @@ Socket.queueChanged = function(data) {
     renderQueue(data.queue);
 }
 
-Socket.searchResultReceived = function(data) {
-    renderSearchResult(data);
-}
-
 ///
 /// ACTIONS
 ///
