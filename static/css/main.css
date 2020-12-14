@@ -121,13 +121,15 @@ h4 {
 	border-bottom-left-radius: 8px;
 	border-top-left-radius: 8px;
 	border: none;
+	vertical-align:top;
 }
 #search button {
 	height: 20px;
-	padding: 2px 4px;
+	padding: 0px 4px 2px 4px;
 	border-bottom-right-radius: 8px;
 	border-top-right-radius: 8px;
 	border: none;
+	vertical-align:top;
 }
 
 /* blue container */
@@ -630,6 +632,6 @@ h4 {
 #queue-container {
 	height: calc(100% - 316px);
 }
-.hidden {
+.hidden, .no-result {
   display:none !important;
 }

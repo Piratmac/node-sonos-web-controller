@@ -392,6 +392,3 @@ function lazyLoadImages(container) {
     }
 }
 
-function renderSearchResult(result) {
-
-}

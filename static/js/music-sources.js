@@ -21,6 +21,10 @@ Socket.renderLibraryItems = function(data, parent) {
     renderLibraryItems(data, parent);
 };
 
+Socket.renderSearchResults = function(data) {
+    renderSearchResults(data);
+};
+
 ///
 /// Rendering
 ///
@@ -115,7 +119,7 @@ function renderLibraryItems(data, parent) {
     if (data[0].numberReturned <= 20) {
         items.forEach(function(item, index) {
             var item_data = {
-                'id': 'library-' + data[0].type.toLowerCase() + '-' + index.toString(),
+                'id': parent + '-' + index.toString(),
                 'title': item.title,
                 'handler': playLibraryItem,
                 'data': {
@@ -133,7 +137,7 @@ function renderLibraryItems(data, parent) {
     else {
         var folders = []
         letters.forEach((letter) => folders.push({
-                    'id': 'library-' + data[0].type.toLowerCase() + '-' + letter,
+                    'id': parent + '-' + letter,
                     'title': letter.toUpperCase(),
                     'children': [],
                     'data':{}
@@ -141,7 +145,7 @@ function renderLibraryItems(data, parent) {
         items.forEach(function(item, index) {
             letter = item.title[0].toUpperCase()
             var item_data = {
-                'id': 'library-' + data[0].type.toLowerCase() + '-' + letter + '-' + index.toString(),
+                'id': parent + '-' + data[0].type.toLowerCase() + '-' + letter + '-' + index.toString(),
                 'title': item.title,
                 'handler': playLibraryItem,
                 'data': {
@@ -164,6 +168,49 @@ function renderLibraryItems(data, parent) {
     // Sort by title
     superior_folder.children.sort((a, b) => ('' + a.title).localeCompare(b.title));
     renderMusicSources(superior_folder);
+}
+
+// Displays search results
+function renderSearchResults (data) {
+    // Displays the main folder (which is hidden by default)
+    var searchFolder = document.getElementById('search-result')
+    searchFolder.classList.remove("hidden");
+
+    // Clear all previous search results + create "ul" if needed
+    var children = Array.prototype.slice.call(searchFolder.getElementsByTagName("ul")[0].children);
+    children.forEach((folder) => {
+        if (folder.getElementsByTagName("ul").length == 0)
+            folder.appendChild(document.createElement('ul'));
+        else {
+            var folder_ul = folder.getElementsByTagName("ul")[0];
+            while (folder_ul.firstChild != undefined)
+                folder_ul.removeChild(folder_ul.firstChild);
+        }
+    });
+
+    // Close properly the currently opened folder
+    var open_folder = document.getElementById('music-sources-backlink').dataset.pwd;
+    if (open_folder != undefined) {
+        while (open_folder != 'music-sources-container') {
+            closeMusicSource(open_folder);
+            open_folder = document.getElementById('music-sources-backlink').dataset.pwd;
+        }
+    }
+
+    openMusicSource("search-result");
+
+    data.forEach((category) => {
+        var category_folder_name = searchFolder.id + '-' + category.type.toLowerCase();
+        var category_folder = document.getElementById(category_folder_name);
+        if (category.numberReturned == 0) {
+            category_folder.classList.add('no-result');
+            return
+        }
+        category_folder.classList.remove('hidden');
+        category_folder.classList.remove('no-result');
+        renderLibraryItems({0: category}, "search-result-" + category.type.toLowerCase());
+        category_folder.getElementsByTagName("ul")[0].classList.add('hidden');
+    });
 }
 
 // Formats a given level of TuneIn radio data
@@ -338,15 +385,24 @@ document.getElementById('library-genre').addEventListener('dblclick', e => brows
 document.getElementById('library-playlists').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'playlists'));
 document.getElementById('library-tracks').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'tracks'));
 
+document.getElementById('search-result').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-album').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-albumartist').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-artist').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-composer').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-genre').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-playlists').addEventListener('dblclick', e => browseMusicSource (e));
+document.getElementById('search-result-tracks').addEventListener('dblclick', e => browseMusicSource (e));
+
 document.getElementById('tune-in').addEventListener('dblclick', displayTuneInRadios);
 
 // Opens a music source folder & emits socket event if there are no children
-function browseMusicSource (e, socketMessage, data = '') {
+function browseMusicSource (e, socketMessage = '', data = '') {
     var currentFolder = findMusicSourceNode(e);
 
     // If we don't have any subelement, trigger the socket for search
     var children = currentFolder.getElementsByTagName("ul");
-    if (children.length == 0)
+    if (children.length == 0 && socketMessage != '')
         Socket.socket.emit(socketMessage, data);
 
     openMusicSource(currentFolder);

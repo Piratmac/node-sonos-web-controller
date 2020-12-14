@@ -214,7 +214,7 @@ socketServer.sockets.on('connection', function(socket) {
     });
 
     socket.on('search', function(data) {
-        search('*', data.term, socket);
+        search('*', data.term, 'search-result', socket);
     });
 
     socket.on("error", function(e) {
@@ -350,7 +350,7 @@ function loadQueue(uuid) {
         });
 }
 
-var all_search_types = ['album', 'albumartist', 'artist', 'composer', 'genre', 'playlists', 'share', 'tracks']
+var all_search_types = ['album', 'albumartist', 'artist', 'composer', 'genre', 'playlists', 'tracks']
 
 function search(types, term, response, socket) {
     console.log('search for', term, 'in', types)

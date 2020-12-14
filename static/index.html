@@ -47,17 +47,9 @@
 				<span id="countdown">-0:00</span>
 			</div>
 		</div>
-		<!--div id="search">
-			<input type="text" id="searchfield" /><button>Q</button>
-			<div id="search-result" class="loading">
-				<ul id="by-track">
-				</ul>
-				<ul id="by-artist">
-				</ul>
-				<ul id="by-album">
-				</ul>
-			</div>
-		</div-->
+		<div id="search">
+			<input type="text" id="searchfield" /><button>></button>
+		</div>
 	</header>
 	<div id="column-container">
 		<div id="zone-container">
@@ -99,6 +91,7 @@
 			</ul>
 		</div>
 		<div id="music-sources-container">
+			<div id="spinner" class="hidden"><img src="images/spinner.gif" /></div>
 			<div id="music-sources-backlink" class="hidden">🢀</div>
 			<h4>MUSIC SOURCES</h4>
 
@@ -140,6 +133,40 @@
                             <span>Tracks</span>
                         </li>
                         <li id="library-playlists">
+                            <img src="images/sources_playlist.png" />
+                            <span>Playlists</span>
+                        </li>
+                    </ul>
+				</li>
+				<li id="search-result" class="hidden">
+                    <img src="images/sources_search.png" />
+                    <span>Search results</span>
+					<ul class="hidden">
+                        <li id="search-result-album">
+                            <img src="images/sources_album.png" />
+                            <span>Albums</span>
+                        </li>
+                        <li id="search-result-albumartist">
+                            <img src="images/sources_artist.png" />
+                            <span>Album artist</span>
+                        </li>
+                        <li id="search-result-artist">
+                            <img src="images/sources_artist.png" />
+                            <span>Artists</span>
+                        </li>
+                        <li id="search-result-composer">
+                            <img src="images/sources_composer.png" />
+                            <span>Composers</span>
+                        </li>
+                        <li id="search-result-genre">
+                            <img src="images/sources_genre.png" />
+                            <span>Genres</span>
+                        </li>
+                        <li id="search-result-tracks">
+                            <img src="images/sources_track.png" />
+                            <span>Tracks</span>
+                        </li>
+                        <li id="search-result-playlists">
                             <img src="images/sources_playlist.png" />
                             <span>Playlists</span>
                         </li>

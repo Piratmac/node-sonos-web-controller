@@ -75,7 +75,7 @@ Socket.socket.on('queue', function(data) {
 
 
 Socket.socket.on('search-result', function(data) {
-    if (Socket.searchResultReceived instanceof Function) Socket.searchResultReceived(data);
+    if (Socket.renderSearchResults instanceof Function) Socket.renderSearchResults(data);
 })
 
 Socket.socket.on('tune-in-radio', function(data) {
@@ -87,25 +87,25 @@ Socket.socket.on('playlists', function(data) {
 })
 
 Socket.socket.on('library-album', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-album');
+    if (Socket.renderLibraryItems instanceof Function) Socket.renderLibraryItems(data, 'library-album');
 })
 
 Socket.socket.on('library-artist', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-artist');
+    if (Socket.renderLibraryItems instanceof Function) Socket.renderLibraryItems(data, 'library-artist');
 })
 
 Socket.socket.on('library-composer', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-composer');
+    if (Socket.renderLibraryItems instanceof Function) Socket.renderLibraryItems(data, 'library-composer');
 })
 
 Socket.socket.on('library-genre', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-genre');
+    if (Socket.renderLibraryItems instanceof Function) Socket.renderLibraryItems(data, 'library-genre');
 })
 
 Socket.socket.on('library-tracks', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-tracks');
+    if (Socket.renderLibraryItems instanceof Function) Socket.renderLibraryItems(data, 'library-tracks');
 })
 
 Socket.socket.on('library-playlists', function(data) {
-    if (Socket.renderPlaylists instanceof Function) Socket.renderLibraryItems(data, 'library-playlists');
+    if (Socket.renderLibraryItems instanceof Function) Socket.renderLibraryItems(data, 'library-playlists');
 })
