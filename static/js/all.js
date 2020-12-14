@@ -392,3 +392,10 @@ function lazyLoadImages(container) {
     }
 }
 
+function displayLoading () {
+    var spinner = document.getElementById('spinner').classList.remove('hidden');
+}
+
+function hideLoading () {
+    var spinner = document.getElementById('spinner').classList.add('hidden');
+}

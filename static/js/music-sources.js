@@ -7,22 +7,27 @@
 
 Socket.renderFavorites = function(data) {
     renderFavorites(data);
+    hideLoading();
 }
 
 Socket.renderTuneInRadios = function(data) {
     renderTuneInRadios(data);
+    hideLoading();
 };
 
 Socket.renderPlaylists = function(data, parent) {
     renderPlaylists(data);
+    hideLoading();
 };
 
 Socket.renderLibraryItems = function(data, parent) {
     renderLibraryItems(data, parent);
+    hideLoading();
 };
 
 Socket.renderSearchResults = function(data) {
     renderSearchResults(data);
+    hideLoading();
 };
 
 ///
@@ -402,8 +407,10 @@ function browseMusicSource (e, socketMessage = '', data = '') {
 
     // If we don't have any subelement, trigger the socket for search
     var children = currentFolder.getElementsByTagName("ul");
-    if (children.length == 0 && socketMessage != '')
+    if (children.length == 0 && socketMessage != '') {
         Socket.socket.emit(socketMessage, data);
+        displayLoading();
+    }
 
     openMusicSource(currentFolder);
     e.stopPropagation();
@@ -415,11 +422,13 @@ function displayTuneInRadios(e) {
 
     // If we don't have any subelement, trigger the socket for search
     var children = currentFolder.getElementsByTagName("ul");
-    if (children.length == 0)
+    if (children.length == 0) {
         Socket.socket.emit('tune-in-radio', {
             uri: currentFolder.dataset.uri,
             source_id: currentFolder.id,
         });
+        displayLoading();
+    }
 
     openMusicSource(currentFolder);
     e.stopPropagation();

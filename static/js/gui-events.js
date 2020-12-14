@@ -184,5 +184,6 @@ document.getElementById('searchfield').addEventListener('keyup', function (e) {
 	var searchTerm = this.value;
 	searchTimer = setTimeout(function () {
 		Socket.socket.emit('search', { term: searchTerm });
+        displayLoading();
 	}, 500);
 });
