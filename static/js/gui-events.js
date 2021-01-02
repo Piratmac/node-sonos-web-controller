@@ -182,6 +182,9 @@ var searchTimer = null;
 document.getElementById('searchfield').addEventListener('keyup', function (e) {
 	if (searchTimer) clearTimeout(searchTimer);
 	var searchTerm = this.value;
+
+    document.getElementById('search-result').getElementsByTagName("span")[0].textContent = "Search results (" + searchTerm + ")"
+
 	searchTimer = setTimeout(function () {
 		Socket.socket.emit('search', { term: searchTerm });
         displayLoading();

@@ -381,7 +381,7 @@ function search(types, term, response, socket) {
     var searchFunction = function(callback) {
         var player = getPlayer();
         console.log('fetching', this.type, 'from', player.uuid)
-        player.browse('A:' + this.type + ':' + this.term, 0, 600)
+        player.browse('A:' + this.type + ':' + this.term.replace('<', '&lt;').replace('>', '&gt;'), 0, 600)
             .then((data) => {
                 data.type = this.type;
                 data.term = this.term;

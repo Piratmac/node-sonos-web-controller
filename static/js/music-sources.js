@@ -180,6 +180,7 @@ function renderSearchResults (data) {
     // Displays the main folder (which is hidden by default)
     var searchFolder = document.getElementById('search-result')
     searchFolder.classList.remove("hidden");
+    searchFolder.classList.remove("no-result");
 
     // Clear all previous search results + create "ul" if needed
     var children = Array.prototype.slice.call(searchFolder.getElementsByTagName("ul")[0].children);
