@@ -286,11 +286,11 @@ function renderMusicSources(sources) {
     var ul = currentFolder.getElementsByTagName("ul")[0];
 
     // Render all the children sources
-    sources.children.forEach(function(child) {
+    sources.children.forEach(function(child, index) {
         if (!document.getElementById(child.id))
-            ul.appendChild(renderMusicSource(child));
+            ul.appendChild(renderMusicSource(child, index >= 20));
         else
-            document.getElementById(child.id).replaceWith(renderMusicSource(child));
+            document.getElementById(child.id).replaceWith(renderMusicSource(child, index >= 20));
 
         // Render the child's children, if any
         if (child.children)
@@ -313,7 +313,7 @@ function sortTuneInRadio(a, b) {
 // - data: will populate the li.dataset (useful to store any data needed to process the source)
 // - title: the title of the source. Will be displayed "as is"
 // - image: the URL of the image to display. If missing, will use the default "missing album" art
-function renderMusicSource(source) {
+function renderMusicSource(source, lazyLoadImages = true) {
     var li = document.createElement('li');
     li.id = source.id;
     setDatasetAttributes(li, source.data);
@@ -349,9 +349,19 @@ function renderMusicSource(source) {
     } else {
         if (source.image[0] == '/') {
             var prefix = (window.location.pathname != '/') ? window.location.pathname : '';
-            albumArt.src = prefix + source.image;
+            if (lazyLoadImages)
+                albumArt.dataset.src = prefix + source.image;
+            else {
+                albumArt.src = prefix + source.image;
+                albumArt.className = "loaded";
+            }
         } else
-            albumArt.src = source.image;
+            if (lazyLoadImages)
+                albumArt.dataset.src = source.image;
+            else {
+                albumArt.src = source.image;
+                albumArt.className = "loaded";
+            }
     }
 
     li.appendChild(albumArt);
@@ -394,6 +404,17 @@ function setDatasetAttributes(el, attrs) {
 // This will display a given folder and its siblings
 document.getElementById('music-sources-backlink').addEventListener('dblclick', function(e) {
     closeMusicSource(e.target.dataset.pwd);
+});
+
+// This will lazy-load images from the music sources list
+document.getElementById('music-sources').addEventListener('scroll', function(e) {
+    var scrollTimeout;
+    clearTimeout(scrollTimeout);
+    var _this = this;
+    scrollTimeout = setTimeout(function() {
+        lazyLoadImages(_this);
+    }, 150);
+
 });
 
 // Opens one of the music sources folder
