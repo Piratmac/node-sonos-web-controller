@@ -331,7 +331,6 @@ function renderQueue(queue) {
         albumArt.dataset.src = prefix + q.albumArtUri;
         if (trackIndex < 20) {
             albumArt.src = prefix + q.albumArtUri;
-            albumArt.className = "loaded";
         }
 
         li.appendChild(albumArt);
@@ -368,23 +367,34 @@ function lazyLoadImages(container) {
     // Find elements that are in viewport
     var containerViewport = container.getBoundingClientRect();
     // best estimate of starting point
-    var trackHeight = container.firstChild.scrollHeight;
+    var liChildren = container.getElementsByTagName("li");
+    var i = liChildren.length-1;
+    var trackHeight = liChildren[i].scrollHeight;
+    while (trackHeight == 0 && i > 0) {
+        i -= 1;
+        trackHeight = liChildren[i].scrollHeight;
+    }
 
-    // startIndex
-    var startIndex = Math.floor(container.scrollTop / trackHeight);
-    var currentNode = container.childNodes[startIndex];
 
-    while (currentNode && currentNode.getBoundingClientRect().top < containerViewport.bottom) {
-        var img = currentNode.firstChild;
-        currentNode = currentNode.nextSibling;
-        if (img.className == 'loaded') {
-            continue;
+    var nodeIndex = Math.floor(container.scrollTop / trackHeight);
+
+    for (var liChild of [...liChildren].slice(nodeIndex)) {
+        // This element is not displayed
+        if (liChild.scrollHeight == 0)
+            continue
+
+        // Reached the bottom of the visible elements
+        if (liChild.getBoundingClientRect().top > containerViewport.bottom)
+            break
+
+        // Find the img element
+        for (var img of [...liChild.getElementsByTagName("img")]) {
+            if (!img.src && img.dataset.src) {
+                // get image
+                img.src = img.dataset.src;
+                break;
+            }
         }
-
-        // get image
-        img.src = img.dataset.src;
-        img.className = 'loaded';
-
     }
 }
 

@@ -15,13 +15,13 @@ Socket.renderTuneInRadios = function(data) {
     hideLoading();
 };
 
-Socket.renderPlaylists = function(data, parent) {
+Socket.renderPlaylists = function(data) {
     renderPlaylists(data);
     hideLoading();
 };
 
-Socket.renderLibraryItems = function(data, parent) {
-    renderLibraryItems(data, parent);
+Socket.renderLibraryItems = function(data) {
+    renderLibraryItems(data);
     hideLoading();
 };
 
@@ -47,7 +47,10 @@ function renderFavorites(favorites) {
             'id': 'favorite-' + index.toString(),
             'title': favorite.title,
             'image': favorite.albumArtUri,
-            'handler': playFavorite,
+            'handlers': {
+                'play': playFavorite,
+                'open': playFavorite,
+            },
             'data': {
                 'uri': favorite.uri,
             }
@@ -89,7 +92,10 @@ function renderPlaylists(playlists) {
         var playlist_data = {
             'id': 'playlist-' + index.toString(),
             'title': playlist.title,
-            'handler': playPlaylist,
+            'handlers': {
+                'dblclick': openMusicSource,
+                'play': playPlaylist,
+            },
             'data': {
                 'uri': playlist.uri,
             }
@@ -109,59 +115,35 @@ function renderPlaylists(playlists) {
 }
 
 // Renders library items
-function renderLibraryItems(data, parent) {
+function renderLibraryItems(data) {
     // Formatting the data in the expected way
     var superior_folder = {
-        'id': parent,
+        'id': data.parent,
         'children': [],
     };
 
-    var items = data[0].items;
+    var items = data.items;
     var letters = [...new Set(items.map((item) => item.title[0].toUpperCase()))];
     var letter = '';
     letters.sort()
 
-    if (data[0].numberReturned <= 20) {
+    if (data.numberReturned <= 50) {
         items.forEach(function(item, index) {
-            var item_data = {
-                'id': parent + '-' + index.toString(),
-                'title': item.title,
-                'handler': playLibraryItem,
-                'data': {
-                    'uri': item.uri,
-                }
-            }
-            if (item.albumArtUri != undefined)
-                item_data.image = item.albumArtUri;
-            if (item.artist != undefined)
-                item_data.artist = item.artist;
-
+            var item_data = formatLibraryItem(superior_folder.id, item, index);
             superior_folder.children.push(item_data);
         });
     }
     else {
         var folders = []
         letters.forEach((letter) => folders.push({
-                    'id': parent + '-' + letter,
-                    'title': letter.toUpperCase(),
-                    'children': [],
-                    'data':{}
-                }));
+                'id': superior_folder.id + '-' + letter,
+                'title': letter.toUpperCase(),
+                'children': [],
+                'data':{}
+            }));
         items.forEach(function(item, index) {
             letter = item.title[0].toUpperCase()
-            var item_data = {
-                'id': parent + '-' + data[0].type.toLowerCase() + '-' + letter + '-' + index.toString(),
-                'title': item.title,
-                'handler': playLibraryItem,
-                'data': {
-                    'uri': item.uri,
-                }
-            }
-            if (item.albumArtUri != undefined)
-                item_data.image = item.albumArtUri;
-            if (item.artist != undefined)
-                item_data.artist = item.artist;
-
+            var item_data = formatLibraryItem(superior_folder.id + '-' + letter, item, index);
             folders[letters.indexOf(letter)].children.push(item_data);
         });
 
@@ -174,6 +156,38 @@ function renderLibraryItems(data, parent) {
     superior_folder.children.sort((a, b) => ('' + a.title).localeCompare(b.title));
     renderMusicSources(superior_folder);
 }
+
+// Formats a library item data so that it matches renderMusicSources' format
+function formatLibraryItem(parent_id, item, index) {
+    var item_data = {
+        'id': parent_id + '-' + index.toString(),
+        'title': item.title,
+        'handlers': {},
+        'data': {
+            'uri': item.uri,
+        }
+    }
+    if (item.albumArtUri != undefined)
+        item_data.image = item.albumArtUri;
+    if (item.artist != undefined)
+        item_data.artist = item.artist;
+
+    // If ID is defined, it means there are levels below
+    if (item.id != undefined) {
+        item_data.handlers.open = browseMusicLibrary;
+        item_data.handlers.play = playLibraryItem;
+        item_data.handlers.add_to_queue = addToQueue;
+        item_data.data['browse-path'] = item.id;
+    }
+    else {
+        item_data.handlers.open = playLibraryItem;
+        item_data.handlers.play = playLibraryItem;
+        item_data.handlers.add_to_queue = addToQueue;
+    }
+
+    return item_data;
+}
+
 
 // Displays search results
 function renderSearchResults (data) {
@@ -228,7 +242,9 @@ function formatTuneInRadio(source, parent_id) {
             'id': group_id,
             'title': source['$'].text,
             'children': [],
-            'handler': displayTuneInRadios,
+            'handlers': {
+                'open': displayTuneInRadios,
+            }
         };
         // Sort the stations / folders
         source['outline'].sort(sortTuneInRadio);
@@ -254,7 +270,9 @@ function formatTuneInRadio(source, parent_id) {
                     'data': {
                         'uri': source.URL,
                     },
-                    'handler': displayTuneInRadios,
+                    'handlers': {
+                        'open': displayTuneInRadios,
+                    }
                 }
                 break;
 
@@ -266,7 +284,9 @@ function formatTuneInRadio(source, parent_id) {
                     'data': {
                         'id': source.preset_id,
                     },
-                    'handler': playTuneInRadio,
+                    'handlers': {
+                        'play': playTuneInRadio,
+                    }
                 }
                 break;
         }
@@ -284,7 +304,7 @@ function formatTuneInRadio(source, parent_id) {
 // - children: one subelement for each child. see renderMusicSource for the format
 function renderMusicSources(sources) {
     var currentFolder = document.getElementById(sources.id)
-    var ul = currentFolder.getElementsByTagName("ul")[0];
+    var ul = currentFolder.getElementsByTagName("ul")[0] || document.createElement('ul');
 
     // Render all the children sources
     sources.children.forEach(function(child, index) {
@@ -313,18 +333,45 @@ function sortTuneInRadio(a, b) {
 // - id: a unique ID used to identify the source
 // - data: will populate the li.dataset (useful to store any data needed to process the source)
 // - title: the title of the source. Will be displayed "as is"
+// It may have additional information:
+// - handlers: which function to call in different cases (open, play, add_to_queue)
+// - artist: the artist's name (will not be displayed if missing)
 // - image: the URL of the image to display. If missing, will use the default "missing album" art
 function renderMusicSource(source, lazyLoadImages = true) {
     var li = document.createElement('li');
     li.id = source.id;
     setDatasetAttributes(li, source.data);
 
-    if (source.handler != undefined)
-        li.addEventListener('dblclick', source.handler);
-    else
+    // Adding the images & handlers for different actions
+    if (source.handlers) {
+        if (source.handlers.open)
+            li.addEventListener('dblclick', source.handlers.open);
+        var divActions = document.createElement('div');
+        if (source.handlers.play) {
+            var imgAction = document.createElement('img');
+            imgAction.src = 'images/sources_action_play.png';
+            imgAction.alt = 'Play';
+            imgAction.addEventListener('dblclick', source.handlers.play);
+            divActions.appendChild(imgAction);
+        }
+        if (source.handlers.add_to_queue) {
+            var imgAction = document.createElement('img');
+            imgAction.src = 'images/sources_action_add_to_queue.png';
+            imgAction.alt = 'Add to queue';
+            imgAction.addEventListener('dblclick', source.handlers.add_to_queue);
+            divActions.appendChild(imgAction);
+        }
+        // If we have any action element
+        if (divActions.children.length) {
+            divActions.classList.add('actions');
+            li.appendChild(divActions);
+        }
+    }
+    else {
         li.addEventListener('dblclick', openMusicSource);
+    }
 
-
+    // Source artist & title
     if (source.artist == undefined) {
         var itemInfo = document.createElement('span');
         itemInfo.textContent = source.title;
@@ -343,31 +390,28 @@ function renderMusicSource(source, lazyLoadImages = true) {
     }
 
 
-
+    // Image
     var albumArt = document.createElement('img');
     if (source.image == undefined) {
         albumArt.src = './images/browse_missing_album_art.png';
     } else {
-        if (source.image[0] == '/') {
+        // Handle servers which are not at the root of the server
+        if (source.image[0] == '/')
             var prefix = (window.location.pathname != '/') ? window.location.pathname : '';
-            if (lazyLoadImages)
-                albumArt.dataset.src = prefix + source.image;
-            else {
-                albumArt.src = prefix + source.image;
-                albumArt.className = "loaded";
-            }
-        } else
-            if (lazyLoadImages)
-                albumArt.dataset.src = source.image;
-            else {
-                albumArt.src = source.image;
-                albumArt.className = "loaded";
-            }
+        else
+            var prefix = '';
+
+        if (lazyLoadImages)
+            albumArt.dataset.src = prefix + source.image;
+        else {
+            albumArt.src = prefix + source.image;
+        }
     }
 
     li.appendChild(albumArt);
     li.appendChild(itemInfo);
 
+    // Children elements
     if (source.children != undefined) {
         var ul = document.createElement("ul");
         ul.classList.add("hidden");
@@ -390,9 +434,25 @@ function findMusicSourceNode(element) {
     if (typeof element == 'string')
         return document.getElementById(element);
     else if (element instanceof Event)
-        return element.currentTarget;
+        var target = element.currentTarget;
     else
-        return element;
+        var target = element;
+
+    while (target.tagName.toUpperCase() != 'LI')
+        target = target.parentNode;
+
+    return target;
+}
+
+// Finds the label to display for a given folder
+// The element should be a <li> tag
+function getFolderLabel(element) {
+    if (element.getElementsByTagName("span").length)
+        var folderName = element.getElementsByTagName("span")[0].textContent;
+    else
+        var folderName = element.getElementsByTagName("p")[0].textContent;
+
+    return folderName;
 }
 
 // Sets all dataset attributes of an element based on a dict
@@ -421,24 +481,29 @@ document.getElementById('music-sources').addEventListener('scroll', function(e) 
 // Opens one of the music sources folder
 document.getElementById('favorites').addEventListener('dblclick', e => browseMusicSource (e, 'favorites'));
 document.getElementById('playlists').addEventListener('dblclick', e => browseMusicSource (e, 'playlists'));
-document.getElementById('library').addEventListener('dblclick', e => browseMusicSource (e, 'library'));
-document.getElementById('library-album').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'album'));
-document.getElementById('library-artist').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'artist'));
-document.getElementById('library-composer').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'composer'));
-document.getElementById('library-genre').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'genre'));
-document.getElementById('library-playlists').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'playlists'));
-document.getElementById('library-tracks').addEventListener('dblclick', e => browseMusicSource (e, 'library', 'tracks'));
+document.getElementById('library').addEventListener('dblclick', e => browseMusicLibrary (e));
+var library_item_types = ['album', 'albumartist', 'artist', 'composer', 'genre', 'playlists', 'tracks'];
+library_item_types.forEach(function (type) {
+    document.getElementById('library-'+type).addEventListener('dblclick', e => browseMusicLibrary (e));
+});
 
 document.getElementById('search-result').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-album').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-albumartist').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-artist').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-composer').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-genre').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-playlists').addEventListener('dblclick', e => browseMusicSource (e));
-document.getElementById('search-result-tracks').addEventListener('dblclick', e => browseMusicSource (e));
+library_item_types.forEach(function (type) {
+    document.getElementById('search-result-'+type).addEventListener('dblclick', e => browseMusicSource (e));
+});
+
 
 document.getElementById('tune-in').addEventListener('dblclick', displayTuneInRadios);
+
+// Opens an element from the library
+function browseMusicLibrary (e) {
+    var currentFolder = findMusicSourceNode(e);
+
+    browseMusicSource(e, 'library', {
+        'parent': currentFolder.id,
+        'browsePath': currentFolder.dataset.browsePath || "",
+    });
+}
 
 // Opens a music source folder & emits socket event if there are no children
 function browseMusicSource (e, socketMessage = '', data = '') {
@@ -479,7 +544,7 @@ function openMusicSource(e) {
     var currentFolder = findMusicSourceNode(e)
 
     // Update the header
-    var folderName = currentFolder.getElementsByTagName("span")[0].textContent;
+    var folderName = getFolderLabel(currentFolder);
     var header = document.getElementById('music-sources-container');
     header.getElementsByTagName("h4")[0].textContent = folderName.toUpperCase();
 
@@ -508,6 +573,7 @@ function openMusicSource(e) {
         switch (child.tagName) {
             case 'SPAN':
             case 'IMG':
+            case 'DIV':
                 child.classList.add('hidden');
                 break;
 
@@ -532,7 +598,7 @@ function closeMusicSource(folder) {
     var parentFolder = currentFolder.parentNode.parentNode
     if (parentFolder.tagName != 'LI') // This means we reached the top element
         parentFolder = currentFolder.parentNode
-    var folderName = parentFolder.getElementsByTagName("span")[0].textContent;
+    var folderName = getFolderLabel(parentFolder);
     var header = document.getElementById('music-sources-container');
     header.getElementsByTagName("h4")[0].textContent = folderName.toUpperCase();
 
@@ -556,6 +622,7 @@ function closeMusicSource(folder) {
         switch (child.tagName) {
             case 'SPAN':
             case 'IMG':
+            case 'DIV':
                 child.classList.remove('hidden');
                 break;
 
@@ -569,51 +636,68 @@ function closeMusicSource(folder) {
     currentFolder.classList.remove('nobackground');
 }
 
-// Double-click on a favorite
+// Play a favorite
 function playFavorite(e) {
-    var eventFavorite = findMusicSourceNode(e);
-    var favoriteName = eventFavorite.getElementsByTagName("span")[0].textContent;
+    var eventItem = findMusicSourceNode(e);
+    var itemTitle = getFolderLabel(eventItem);
 
     Socket.socket.emit('play-favorite', {
         uuid: Sonos.currentState.selectedZone,
-        favorite: favoriteName
+        favorite: itemTitle
     });
+    e.stopPropagation();
 }
 
-// Double-click on a radio
+// Play a radio
 function playTuneInRadio(e) {
-    var eventRadio = findMusicSourceNode(e);
-    var radioName = eventRadio.getElementsByTagName("span")[0].textContent;
+    var eventItem = findMusicSourceNode(e);
+    var itemTitle = getFolderLabel(eventItem);
 
     Socket.socket.emit('play-tune-in-radio', {
         uuid: Sonos.currentState.selectedZone,
-        id: eventRadio.dataset.id,
-        title: radioName,
-        image: eventRadio.dataset.image,
+        id: eventItem.dataset.id,
+        title: itemTitle,
+        image: eventItem.dataset.image,
     });
+    e.stopPropagation();
 }
 
-// Double-click on a playlist
+// Play a playlist
 function playPlaylist(e) {
-    var eventPlaylist = findMusicSourceNode(e);
-    var playlistTitle = eventPlaylist.getElementsByTagName("span")[0].textContent;
+    var eventItem = findMusicSourceNode(e);
+    var itemTitle = getFolderLabel(eventItem);
 
     Socket.socket.emit('play-playlist', {
         uuid: Sonos.currentState.selectedZone,
-        id: eventPlaylist.dataset.id,
-        title: playlistTitle,
+        id: eventItem.dataset.id,
+        title: itemTitle,
     });
+    e.stopPropagation();
 }
 
-// Double-click on a library item
+// Play a library item
 function playLibraryItem(e) {
-    var eventPlaylist = findMusicSourceNode(e);
-    var playlistTitle = eventPlaylist.getElementsByTagName("span")[0].textContent;
+    var eventItem = findMusicSourceNode(e);
+    var itemTitle = getFolderLabel(eventItem);
 
     Socket.socket.emit('play-library-item', {
         uuid: Sonos.currentState.selectedZone,
-        id: eventPlaylist.dataset.id,
-        uri: eventPlaylist.dataset.uri,
-        title: playlistTitle,
+        id: eventItem.dataset.id,
+        uri: eventItem.dataset.uri,
+        title: itemTitle,
     });
+    e.stopPropagation();
+}
+
+// Add an element to the queue
+function addToQueue(e) {
+    var eventItem = findMusicSourceNode(e);
+    var itemTitle = getFolderLabel(eventItem);
+
+    Socket.socket.emit('add-to-queue', {
+        uuid: Sonos.currentState.selectedZone,
+        uri: eventItem.dataset.uri,
+        title: itemTitle,
+    });
+    e.stopPropagation();
 }

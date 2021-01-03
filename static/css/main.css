@@ -581,7 +581,6 @@ h4 {
 #queue-container li {
 	list-style: none;
 	margin: 0;
-	padding: 0;
 	padding: 1px 0 1px 0;
 	font-size: 100%;
 	width: 100%;
@@ -621,15 +620,16 @@ h4 {
 #music-sources-container li div,
 #queue-container li div {
 	display: inline-block;
-	width: calc(100% - 60px);
-	height:36px;
-	padding:4px 3px 0 3px;
+	width: calc(100% - 180px);
+	height:32px;
+	margin-top:4px;
+	padding:0 3px 0 3px;
 }
 
 #music-sources-container li div p,
 #queue-container li div p {
 	margin: 0;
-	line-height: 18px;
+	line-height: 16px;
 	font-size: 100%;
 	overflow: hidden;
 	width: 100%;
@@ -643,8 +643,18 @@ h4 {
 }
 
 #music-sources-container li span {
-	padding: 3px;
+	padding: 6px;
 	line-height: 40px;
+}
+
+#music-sources-container .actions {
+	float:right;
+	width:80px;
+}
+
+#music-sources-container .actions img {
+	height: 30px;
+	width: 30px;
 }
 
 #queue-container {

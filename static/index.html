@@ -5,18 +5,14 @@
 		<link rel="stylesheet" type="text/css" href="css/common.css" />
 		<link rel="stylesheet" type="text/css" href="css/main.css" />
 		<script src="socket.io/socket.io.js"></script>
-		<script>
-
-		</script>
 		<title id="page-title">Sonos Web Controller</title>
 		<link id="favicon" rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-		<meta charset="UTF-8">
+		<meta charset="UTF-8" />
 	</head>
 <body>
 	<header id="top-control">
-
-		<img  id="master-mute" class="mute-button" src="svg/mute_off.svg" />
-		<div id="master-volume" class="volume-bar" /><img src="images/popover_vol_scrubber_normal.png" /></div>
+		<img id="master-mute" class="mute-button" src="svg/mute_off.svg" />
+		<div id="master-volume" class="volume-bar"><img src="images/popover_vol_scrubber_normal.png" /></div>
 		<div id="player-volumes-container">
 			<div id="player-volumes" class="loading"></div>
 		</div>
@@ -62,7 +58,7 @@
 			<div id="current-track-info">
 				<div class="art-container">
 					<div class="mirror">
-						<img id="current-track-art" />
+						<img id="current-track-art" alt="Current track art" />
 					</div>
 				</div>
 				<div class="info-container">
@@ -77,7 +73,7 @@
 				<p id="next-track"></p>
 			</div>
 			<div id="current-radio-info">
-				<img id="current-radio-art" />
+				<img id="current-radio-art" alt="Current radio art" />
 				<div class="info-container">
 					<h6>Station</h6>
 					<p id="station"></p>
@@ -97,43 +93,48 @@
 
 			<ul id="music-sources">
 				<li id="favorites">
-					<img src="images/sources_favorites.png" />
+
+					<img src="images/sources_favorites.png" alt="Favorites" />
 					<span>Favorites</span>
 				</li>
 				<li id="tune-in" data-uri="http://opml.radiotime.com/">
-					<img src="images/sources_radio.png" />
-					<span>Radio</span>
+					<img src="images/sources_radio.png" alt="Radio via Tune In" />
+					<span>Radio via Tune In</span>
 				</li>
 				<li id="playlists">
-					<img src="images/sources_playlist.png" />
+					<img src="images/sources_playlist.png" alt="Playlists" />
 					<span>Playlists</span>
 				</li>
 				<li id="library">
                     <img src="images/sources_library.png" />
                     <span>Library</span>
 					<ul class="hidden">
-                        <li id="library-album">
-                            <img src="images/sources_album.png" />
+                        <li id="library-album" data-browse-path="A:ALBUM">
+                            <img src="images/sources_album.png" alt="Albums" />
                             <span>Albums</span>
                         </li>
-                        <li id="library-artist">
-                            <img src="images/sources_artist.png" />
+                        <li id="library-albumartist" data-browse-path="A:ALBUMARTIST">
+                            <img src="images/sources_albumartist.png" alt="Album artists" />
+                            <span>Album Artists</span>
+                        </li>
+                        <li id="library-artist" data-browse-path="A:ARTIST">
+                            <img src="images/sources_artist.png" alt="Artists" />
                             <span>Artists</span>
                         </li>
-                        <li id="library-composer">
-                            <img src="images/sources_composer.png" />
+                        <li id="library-composer" data-browse-path="A:COMPOSER">
+                            <img src="images/sources_composer.png" alt="Composers" />
                             <span>Composers</span>
                         </li>
-                        <li id="library-genre">
-                            <img src="images/sources_genre.png" />
+                        <li id="library-genre" data-browse-path="A:GENRE">
+                            <img src="images/sources_genre.png" alt="Genres" />
                             <span>Genres</span>
                         </li>
-                        <li id="library-tracks">
-                            <img src="images/sources_track.png" />
+                        <li id="library-tracks" data-browse-path="A:TRACKS">
+                            <img src="images/sources_track.png" alt="Tracks" />
                             <span>Tracks</span>
                         </li>
-                        <li id="library-playlists">
-                            <img src="images/sources_playlist.png" />
+                        <li id="library-playlists" data-browse-path="A:PLAYLISTS">
+                            <img src="images/sources_playlist.png" alt="Playlists" />
                             <span>Playlists</span>
                         </li>
                     </ul>
@@ -143,31 +144,31 @@
                     <span>Search results</span>
 					<ul class="hidden">
                         <li id="search-result-album">
-                            <img src="images/sources_album.png" />
+                            <img src="images/sources_album.png" alt="Albums" />
                             <span>Albums</span>
                         </li>
                         <li id="search-result-albumartist">
-                            <img src="images/sources_artist.png" />
+                            <img src="images/sources_artist.png" alt="Album artists" />
                             <span>Album artist</span>
                         </li>
                         <li id="search-result-artist">
-                            <img src="images/sources_artist.png" />
+                            <img src="images/sources_artist.png" alt="Artists" />
                             <span>Artists</span>
                         </li>
                         <li id="search-result-composer">
-                            <img src="images/sources_composer.png" />
+                            <img src="images/sources_composer.png" alt="Composers" />
                             <span>Composers</span>
                         </li>
                         <li id="search-result-genre">
-                            <img src="images/sources_genre.png" />
+                            <img src="images/sources_genre.png" alt="Genres" />
                             <span>Genres</span>
                         </li>
                         <li id="search-result-tracks">
-                            <img src="images/sources_track.png" />
+                            <img src="images/sources_track.png" alt="Tracks" />
                             <span>Tracks</span>
                         </li>
                         <li id="search-result-playlists">
-                            <img src="images/sources_playlist.png" />
+                            <img src="images/sources_playlist.png" alt="Playlist" />
                             <span>Playlists</span>
                         </li>
                     </ul>

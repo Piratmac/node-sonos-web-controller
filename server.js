@@ -284,7 +284,7 @@ socketServer.sockets.on('connection', function(socket) {
     });
 
     socket.on('library', function (data) {
-        search(data, '', 'library-' + data, socket);
+        browse(data.browsePath, 'library', socket, data.parent);
     });
 
     socket.on('play-library-item', function(data) {
@@ -292,8 +292,23 @@ socketServer.sockets.on('connection', function(socket) {
         if (!player) return;
 
         player.replaceWithURI(data.uri, '')
+            .then((data) => player.setAVTransport(data.uri))
             .then(() => player.play())
             .catch((error) => console.log(error));
+    });
+
+    socket.on('add-to-queue', function(data) {
+        var player = discovery.getPlayerByUUID(data.uuid);
+        if (!player) return;
+
+        player.addURIToQueue(data.uri, '')
+            .catch((error) => console.log(error));
+
+        if (player.state.currentTrack.type == 'radio') {
+            player.setAVTransport(`x-rincon-queue:${data.uuid}#0`)
+                .then(() => player.play())
+                .catch((error) => console.log(error));;
+        }
     });
 });
 
@@ -350,10 +365,8 @@ function loadQueue(uuid) {
         });
 }
 
-var all_search_types = ['album', 'albumartist', 'artist', 'composer', 'genre', 'playlists', 'tracks']
-
-function search(types, term, response, socket) {
-    console.log('search for', term, 'in', types)
+function browse(browsePath, response, socket, parentId) {
+    console.log('Browsing', browsePath);
     var playerCycle = 0;
     var players = [];
 
@@ -366,22 +379,45 @@ function search(types, term, response, socket) {
         return player;
     }
 
-    var search_types = []
-
-    if (typeof types == 'string')
-        if (types == '*')
-            search_types = all_search_types
-        else
-            search_types = [types]
-    else
-        for (var type in types)
-            if (all_search_types.indexOf(type.toUpperCase()) >= 0)
-                search_types.append(type)
-
     var searchFunction = function(callback) {
         var player = getPlayer();
-        console.log('fetching', this.type, 'from', player.uuid)
-        player.browse('A:' + this.type + ':' + this.term.replace('<', '&lt;').replace('>', '&gt;'), 0, 600)
+        //console.log('fetching', this.type, 'from', player.uuid)
+        browsePath = browsePath.replace('<', '&lt;').replace('>', '&gt;').replace('&', '&amp;');
+        player.browse(browsePath, 0, 600)
+            .then((data) => {
+                data.parent = parentId;
+                callback(null, data)
+            })
+            .catch((error) => console.log(error));
+    }
+
+    var results = {}
+    searchFunction(function(err, results) {
+        socket.emit(response, results);
+    });
+}
+
+function search(term, response, socket) {
+    console.log('search for', term);
+    var playerCycle = 0;
+    var players = [];
+
+    for (var i in discovery.players) {
+        players.push(discovery.players[i]);
+    }
+
+    function getPlayer() {
+        var player = players[playerCycle++ % players.length];
+        return player;
+    }
+
+    var search_types = ['ALBUM', 'ALBUMARTIST', 'ARTIST', 'COMPOSER', 'GENRE', 'PLAYLISTS', 'TRACKS'];
+    var searchFunction = function(callback) {
+        var player = getPlayer();
+        //console.log('fetching', this.type, 'from', player.uuid)
+        this.term = this.term.replace('<', '&lt;').replace('>', '&gt;').replace('&', '&amp;');
+        var searchSentence = 'A:' + this.type + '/' + this.term;
+        player.browse(searchSentence, 0, 600)
             .then((data) => {
                 data.type = this.type;
                 data.term = this.term;
