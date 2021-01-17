@@ -573,6 +573,7 @@ h4 {
   font-weight: 600;
   font-size: 120%;
   padding:9px;
+  padding-bottom:0px;
   margin: 0;
   color: #0A97FF;
 }
