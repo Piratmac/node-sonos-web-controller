@@ -214,7 +214,7 @@ socketServer.sockets.on('connection', function(socket) {
     });
 
     socket.on('search', function(data) {
-        search('*', data.term, 'search-result', socket);
+        search(data.term, 'search-result', socket);
     });
 
     socket.on("error", function(e) {
@@ -414,9 +414,9 @@ function search(term, response, socket) {
     var search_types = ['ALBUM', 'ALBUMARTIST', 'ARTIST', 'COMPOSER', 'GENRE', 'PLAYLISTS', 'TRACKS'];
     var searchFunction = function(callback) {
         var player = getPlayer();
-        //console.log('fetching', this.type, 'from', player.uuid)
         this.term = this.term.replace('<', '&lt;').replace('>', '&gt;').replace('&', '&amp;');
-        var searchSentence = 'A:' + this.type + '/' + this.term;
+        var searchSentence = 'A:' + this.type + ':' + this.term;
+        console.log('fetching', searchSentence, 'from', player.uuid)
         player.browse(searchSentence, 0, 600)
             .then((data) => {
                 data.type = this.type;
@@ -427,6 +427,7 @@ function search(term, response, socket) {
     }
 
     var searchFunctions = [];
+    var type = '';
     for (type in search_types)
         searchFunctions.push(searchFunction.bind({'type': search_types[type].toUpperCase(), 'term': term}));
 

@@ -115,6 +115,10 @@ function renderPlaylists(playlists) {
 }
 
 // Renders library items
+// data must have the following elements:
+// - parent: a unique ID used to identify the parent folder
+// - items: contains one or multiple sources (with id, title, uri, ...)
+// - numberReturned: the count of results found
 function renderLibraryItems(data) {
     // Formatting the data in the expected way
     var superior_folder = {
@@ -219,16 +223,22 @@ function renderSearchResults (data) {
 
     openMusicSource("search-result");
 
-    data.forEach((category) => {
-        var category_folder_name = searchFolder.id + '-' + category.type.toLowerCase();
+    data.forEach((category_results) => {
+        // Create the folder structure
+        var category_folder_name = searchFolder.id + '-' + category_results.type.toLowerCase();
         var category_folder = document.getElementById(category_folder_name);
-        if (category.numberReturned == 0) {
+        category_results.parent = category_folder_name
+
+        // Handle display of the parent based on results
+        if (category_results.numberReturned == 0) {
             category_folder.classList.add('no-result');
             return
         }
         category_folder.classList.remove('hidden');
         category_folder.classList.remove('no-result');
-        renderLibraryItems({0: category}, "search-result-" + category.type.toLowerCase());
+
+        // Render the category itself
+        renderLibraryItems(category_results);
         category_folder.getElementsByTagName("ul")[0].classList.add('hidden');
     });
 }
